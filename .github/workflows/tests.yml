@@ -8,12 +8,9 @@ on:
 
 
 jobs:
-  test-backend:
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    defaults:
-      run:
-        working-directory: backend
     env:
       SECRET_KEY: github_actions
 
