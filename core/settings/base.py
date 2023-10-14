@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'django_celery_beat',
 
     # apps
-    # 'accounts',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -300,4 +300,4 @@ SITE_ID = 1
 # Custom user
 # https://docs.djangoproject.com/en/4.2/topics/auth/customizing/
 
-# AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = 'accounts.User'
