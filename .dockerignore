@@ -1,0 +1,9 @@
+.github
+.git
+.gitignore
+venv
+.venv
+README.md
+.idea
+db.sqlite3
+docs
