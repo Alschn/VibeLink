@@ -24,6 +24,7 @@ celery = "*"
 django-celery-results = "*"
 django-celery-beat = "*"
 flower = "*"
+django-friendship = "*"
 
 [dev-packages]
 factory-boy = "*"
