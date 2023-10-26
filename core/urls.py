@@ -17,9 +17,11 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path
+from django.urls.conf import include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include(('friends.urls', 'friends'))),
 ]
 
 if settings.DEBUG:
@@ -31,6 +33,6 @@ if settings.DEBUG:
 
     urlpatterns += [
         path('schema/', SpectacularAPIView.as_view(), name='schema'),
-        path('schema/swagger/', SpectacularRedocView.as_view(url_name='schema'), name='swagger-ui'),
-        path('schema/redoc/', SpectacularSwaggerView.as_view(url_name='schema'), name='redoc'),
+        path('schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+        path('schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     ]
