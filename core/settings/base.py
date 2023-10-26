@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_extensions',
     'drf_spectacular',
+    'django_jsonform',
 
     'rest_framework',
     'rest_framework_simplejwt',
