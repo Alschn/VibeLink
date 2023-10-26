@@ -16,3 +16,19 @@ class UserFactory(DjangoModelFactory):
         'set_password',
         DEFAULT_USER_FACTORY_PASSWORD
     )
+
+
+class FriendFactory(DjangoModelFactory):
+    class Meta:
+        model = 'friendship.Friend'
+
+    to_user = factory.SubFactory(UserFactory)
+    from_user = factory.SubFactory(UserFactory)
+
+
+class FriendshipRequestFactory(DjangoModelFactory):
+    class Meta:
+        model = 'friendship.FriendshipRequest'
+
+    to_user = factory.SubFactory(UserFactory)
+    from_user = factory.SubFactory(UserFactory)
