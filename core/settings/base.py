@@ -56,6 +56,8 @@ INSTALLED_APPS = [
 
     # apps
     'accounts',
+    'links',
+    'tracks',
 ]
 
 MIDDLEWARE = [
