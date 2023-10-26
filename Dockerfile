@@ -19,7 +19,7 @@ RUN \
     apk update && \
     apk upgrade && \
     apk add --virtual .build-deps gcc musl-dev postgresql-dev && \
-    pipenv install --python 3.11 --verbose && \
+    pipenv install --dev --python 3.11 --verbose && \
     apk --purge del .build-deps
 
 FROM base-image as runtime
