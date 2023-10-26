@@ -22,6 +22,7 @@ from django.urls.conf import include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(('friends.urls', 'friends'))),
+    path('api/', include(('links.urls', 'links'))),
 ]
 
 if settings.DEBUG:

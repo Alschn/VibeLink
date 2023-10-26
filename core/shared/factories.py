@@ -1,6 +1,8 @@
 import factory
 from factory.django import DjangoModelFactory
 
+from links.models import Link
+
 DEFAULT_USER_FACTORY_PASSWORD = 'test'
 
 
@@ -32,3 +34,36 @@ class FriendshipRequestFactory(DjangoModelFactory):
 
     to_user = factory.SubFactory(UserFactory)
     from_user = factory.SubFactory(UserFactory)
+
+
+class LinkFactory(DjangoModelFactory):
+    class Meta:
+        model = 'links.Link'
+
+    title = factory.Faker('sentence')
+    description = factory.Faker('paragraph')
+    url = factory.Faker('url')
+    source_type = Link.SourceType.UNKNOWN
+    user = factory.SubFactory(UserFactory)
+    track = None
+    # todo: track, author factories
+
+
+class LinkRequestFactory(DjangoModelFactory):
+    class Meta:
+        model = 'links.LinkRequest'
+
+    user = factory.SubFactory(UserFactory)
+
+    has_link = False
+
+    class Params:
+        has_link = factory.Trait(
+            link=factory.SubFactory(
+                'core.shared.factories.LinkFactory',
+                user=factory.SelfAttribute('..user')
+            ),
+            fulfilled_at=factory.LazyAttribute(
+                lambda o: o.link.created_at
+            )
+        )
