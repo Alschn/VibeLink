@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
 from django.test.utils import override_settings
 from friendship.models import Friend
@@ -120,6 +121,38 @@ class FriendshipRequestsViewSetTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.post(
             reverse_lazy('friends:friendship-requests-reject', args=(69,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn('detail', response.json())
+
+    def test_cancel_friend_request(self):
+        to_user = UserFactory()
+        request = Friend.objects.add_friend(self.user, to_user)
+        request_id = request.id
+
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse_lazy('friends:friendship-requests-cancel', args=(request.id,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        with self.assertRaises(ObjectDoesNotExist):
+            Friend.objects.get(id=request_id)
+
+    def test_cancel_friend_request_receiver(self):
+        to_user = UserFactory()
+        request = Friend.objects.add_friend(self.user, to_user)
+
+        self.client.force_login(to_user)
+        response = self.client.post(
+            reverse_lazy('friends:friendship-requests-cancel', args=(request.id,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn('detail', response.json())
+
+    def test_cancel_friend_request_not_exists(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse_lazy('friends:friendship-requests-cancel', args=(2023,))
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertIn('detail', response.json())
