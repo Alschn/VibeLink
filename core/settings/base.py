@@ -220,19 +220,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Django REST Framework settings
 # https://www.django-rest-framework.org/api-guide/settings/
 
-DEBUG_AUTHENTICATION_CLASSES = (
-    'rest_framework.authentication.SessionAuthentication',
-    'rest_framework.authentication.BasicAuthentication',
-) if DEBUG else ()
-
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
     ),
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        *DEBUG_AUTHENTICATION_CLASSES,
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ),
 
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
