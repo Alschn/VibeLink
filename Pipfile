@@ -25,6 +25,7 @@ django-celery-results = "*"
 django-celery-beat = "*"
 flower = "*"
 django-friendship = "*"
+django-jsonform = "*"
 
 [dev-packages]
 factory-boy = "*"

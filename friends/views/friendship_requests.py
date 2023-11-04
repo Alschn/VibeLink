@@ -5,6 +5,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from friendship.models import FriendshipRequest
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -22,6 +23,7 @@ class FriendshipRequestsViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
+    permission_classes = (IsAuthenticated,)
     pagination_class = FriendshipRequestsPagination
     filter_backends = [DjangoFilterBackend]
     filterset_class = FriendshipRequestFilterSet
