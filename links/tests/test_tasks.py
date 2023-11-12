@@ -24,7 +24,7 @@ class LinkRequestsTasksTests(TestCase):
     def setUpTestData(cls):
         cls.user = UserFactory()
 
-    @patch('links.queue.tasks.send_link_requests_email_notifications')
+    @patch('links.emails.send_link_requests_email_notifications')
     def test_generate_link_requests_task(self, mock_emails: MagicMock):
         UserFactory.create_batch(2)
         users = User.objects.all()
