@@ -281,10 +281,12 @@ CELERY_RESULT_BACKEND = 'django-db'
 
 CELERY_CACHE_BACKEND = 'default'
 
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': REDIS_URL or f'redis://{REDIS_HOST}:{REDIS_PORT}',
+        'LOCATION': CELERY_BROKER_URL,
     },
 }
 
