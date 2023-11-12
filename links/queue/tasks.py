@@ -1,12 +1,11 @@
 from celery import shared_task
 
-from links.emails import send_link_requests_email_notifications
-
 
 @shared_task
 def generate_link_requests() -> list[int]:
-    from links.models import LinkRequest
     from accounts.models import User
+    from links.models import LinkRequest
+    from links.emails import send_link_requests_email_notifications
 
     users = User.objects.all()
     link_requests = [LinkRequest.objects.create(user=user) for user in users]
