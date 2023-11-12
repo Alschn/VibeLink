@@ -20,6 +20,7 @@ Create a `env` directory with following dotenv files:
 `env/backend.env`
 
 ```dotenv
+DJANGO_SETTINGS_MODULE=core.settings.base
 DEBUG=True
 SECRET_KEY=randomsecretkey
 ALLOWED_HOSTS=backend,localhost,127.0.0.1,host.docker.internal,*
@@ -33,6 +34,11 @@ DB_PORT=5432
 
 REDIS_HOST=redis_db
 REDIS_PORT=6379
+
+# Spotify API keys
+# https://developer.spotify.com/dashboard
+SPOTIPY_CLIENT_ID=...
+SPOTIFT_CLIENT_SECRET=...
 ```
 
 `env/postgres.env`

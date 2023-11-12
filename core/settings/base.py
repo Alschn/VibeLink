@@ -304,3 +304,9 @@ SITE_ID = 1
 # https://docs.djangoproject.com/en/4.2/topics/auth/customizing/
 
 AUTH_USER_MODEL = 'accounts.User'
+
+# Spotipy settings
+# https://spotipy.readthedocs.io/en/2.22.1/#
+
+SPOTIPY_CLIENT_ID = env('SPOTIPY_CLIENT_ID', default=None)
+SPOTIPY_CLIENT_SECRET = env('SPOTIPY_CLIENT_SECRET', default=None)
