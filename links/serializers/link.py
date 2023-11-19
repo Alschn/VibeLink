@@ -85,6 +85,12 @@ class LinkCreateSerializer(serializers.ModelSerializer):
         return instance
 
 
+class LinkCreateResultSerializer(LinkCreateSerializer):
+    # it's only purpose is for the documentation generation
+    # do not use elsewhere
+    celery_id = serializers.CharField(read_only=True)
+
+
 def get_source_type_from_url(url: str) -> str:
     parsed = urlparse(url)
     host = parsed.hostname

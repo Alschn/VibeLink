@@ -1,4 +1,6 @@
-from django.test import TestCase
+from unittest.mock import patch
+
+from django.test import TestCase, override_settings
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
@@ -7,6 +9,7 @@ from links.models import Link
 from links.serializers.link import LinkSerializer
 
 
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 class LinksViewSetTests(TestCase):
     links_list_url = reverse_lazy('links:links-list')
 
@@ -33,6 +36,7 @@ class LinksViewSetTests(TestCase):
 
     def test_create_link_youtube(self):
         link_request = LinkRequestFactory(user=self.user)
+        song_url = 'https://www.youtube.com/watch?v=bwQDEvTcvUg&ab_channel=Narkopop'
 
         self.client.force_login(self.user)
         response = self.client.post(
@@ -41,7 +45,7 @@ class LinksViewSetTests(TestCase):
                 'link_request': link_request.id,
                 'title': 'Youtube link',
                 'description': 'Test',
-                'url': 'https://www.youtube.com/watch?v=bwQDEvTcvUg&ab_channel=Narkopop',
+                'url': song_url,
             },
         )
         response_json = response.json()
@@ -57,8 +61,12 @@ class LinksViewSetTests(TestCase):
         self.assertEqual(link_request.link, link)
         self.assertIsNotNone(link_request.fulfilled_at)
 
-    def test_create_link_spotify(self):
+    @patch('tracks.spotify.actions.gather_spotify_metadata')
+    def test_create_link_spotify(self, mock_fetch_spotify):
+        mock_fetch_spotify.return_value = {}
+
         link_request = LinkRequestFactory(user=self.user)
+        song_url = 'https://open.spotify.com/track/5CTNmaXOY1nSnIUsxCpiyU?si=b395d83e839544b1'
 
         self.client.force_login(self.user)
         response = self.client.post(
@@ -66,9 +74,10 @@ class LinksViewSetTests(TestCase):
             data={
                 'link_request': link_request.id,
                 'title': 'Spotify link',
-                'url': 'https://open.spotify.com/track/5CTNmaXOY1nSnIUsxCpiyU?si=b395d83e839544b1',
+                'url': song_url,
             },
         )
+        mock_fetch_spotify.assert_called_once_with(song_url)
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -77,6 +86,7 @@ class LinksViewSetTests(TestCase):
 
     def test_create_link_other_source(self):
         link_request = LinkRequestFactory(user=self.user)
+        song_url = 'https://soundcloud.com/hahaahahahahah/controlla'
 
         self.client.force_login(self.user)
         response = self.client.post(
@@ -84,7 +94,7 @@ class LinksViewSetTests(TestCase):
             data={
                 'link_request': link_request.id,
                 'title': 'Soundcloud link (not supported yet)',
-                'url': 'https://soundcloud.com/hahaahahahahah/controlla',
+                'url': song_url,
             },
         )
         response_json = response.json()
