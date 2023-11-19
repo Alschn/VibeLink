@@ -5,12 +5,14 @@ import spotipy
 from django.db import transaction
 
 from tracks.models import Track, Author
-from tracks.spotify.client import spotify_client
+from tracks.spotify import get_spotify_client
 
 logger = logging.getLogger(__name__)
 
 
 def gather_spotify_metadata(url: str) -> dict:
+    spotify_client = get_spotify_client()
+
     pattern = 'track/([a-zA-Z0-9]+)'
     match = re.search(pattern, url)
 

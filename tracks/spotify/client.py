@@ -12,6 +12,3 @@ def get_spotify_client() -> spotipy.Spotify:
             client_secret=settings.SPOTIPY_CLIENT_SECRET
         )
     )
-
-
-spotify_client = get_spotify_client()

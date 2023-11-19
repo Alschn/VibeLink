@@ -1,1 +1,1 @@
-from .client import spotify_client
+from .client import get_spotify_client
