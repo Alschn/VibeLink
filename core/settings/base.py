@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'drf_spectacular',
     'django_jsonform',
+    'django_filters',
 
     'rest_framework',
     'rest_framework_simplejwt',
