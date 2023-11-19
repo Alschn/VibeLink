@@ -9,7 +9,10 @@ from links.models import Link
 from links.serializers.link import LinkSerializer
 
 
-@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+@override_settings(
+    CELERY_TASK_ALWAYS_EAGER=True,
+    CELERY_BROKER_URL='memory://'
+)
 class LinksViewSetTests(TestCase):
     links_list_url = reverse_lazy('links:links-list')
 
