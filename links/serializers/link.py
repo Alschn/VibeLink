@@ -2,6 +2,7 @@ from urllib.parse import urlparse
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from accounts.serializers.user import UserSerializer
@@ -65,7 +66,7 @@ class LinkCreateSerializer(serializers.ModelSerializer):
             )
         except LinkRequest.DoesNotExist:
             raise serializers.ValidationError(
-                'The link request does not exist or belong to the user'
+                _('The link request does not exist or belong to the user')
             )
 
         return value
@@ -85,7 +86,13 @@ class LinkCreateSerializer(serializers.ModelSerializer):
         return instance
 
 
-def get_source_type_from_url(url: str) -> str:
+class LinkCreateResultSerializer(LinkCreateSerializer):
+    # it's only purpose is for the documentation generation
+    # do not use elsewhere
+    task_id = serializers.CharField(read_only=True)
+
+
+def get_source_type_from_url(url: str) -> Link.SourceType:
     parsed = urlparse(url)
     host = parsed.hostname
 
