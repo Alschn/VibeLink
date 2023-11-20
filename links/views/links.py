@@ -66,7 +66,7 @@ class LinksViewSet(
         _, task_id = self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(
-            {**serializer.data, 'celery_id': task_id},
+            {**serializer.data, 'task_id': task_id},
             status=status.HTTP_201_CREATED,
             headers=headers
         )
