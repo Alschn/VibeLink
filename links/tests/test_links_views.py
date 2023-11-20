@@ -80,9 +80,11 @@ class LinksViewSetTests(TestCase):
                 'url': song_url,
             },
         )
-        mock_fetch_spotify.assert_called_once_with(song_url)
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        link_id = response_json['id']
+        mock_fetch_spotify.assert_called_once_with(link_id, song_url)
 
         source_type = response_json['source_type']
         self.assertEqual(Link.SourceType(source_type), Link.SourceType.SPOTIFY)

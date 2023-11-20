@@ -48,11 +48,7 @@ class LinksViewSet(
     @transaction.atomic
     def perform_create(self, serializer: LinkCreateSerializer) -> tuple[Link, str]:
         instance: Link = serializer.save()
-
-        result: AsyncResult = gather_metadata_for_link.delay(
-            url=instance.url,
-            source_type=instance.source_type
-        )
+        result: AsyncResult = gather_metadata_for_link.delay(link_id=instance.id)
         return instance, result.id
 
     @extend_schema(

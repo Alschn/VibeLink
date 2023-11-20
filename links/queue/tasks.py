@@ -22,14 +22,16 @@ def generate_link_requests() -> list[int]:
 
 
 @shared_task
-def gather_metadata_for_link(url: str, source_type: str) -> dict:
+def gather_metadata_for_link(link_id: int) -> dict:
     from links.models import Link
     from tracks.spotify.actions import gather_spotify_metadata
 
-    if source_type == Link.SourceType.SPOTIFY:
-        return gather_spotify_metadata(url)
+    link = Link.objects.get(id=link_id)
 
-    elif source_type == Link.SourceType.YOUTUBE:
+    if link.source_type == Link.SourceType.SPOTIFY:
+        return gather_spotify_metadata(link_id, link.url)
+
+    elif link.source_type == Link.SourceType.YOUTUBE:
         # todo: implement later
         return {}
 
