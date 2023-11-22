@@ -25,6 +25,7 @@ def generate_link_requests() -> list[int]:
 def gather_metadata_for_link(link_id: int) -> dict:
     from links.models import Link
     from tracks.spotify.actions import gather_spotify_metadata
+    from tracks.youtube.actions import gather_youtube_metadata
 
     link = Link.objects.get(id=link_id)
 
@@ -32,7 +33,11 @@ def gather_metadata_for_link(link_id: int) -> dict:
         return gather_spotify_metadata(link_id, link.url)
 
     elif link.source_type == Link.SourceType.YOUTUBE:
-        # todo: implement later
-        return {}
+        return gather_youtube_metadata(link_id, link.url)
 
+    logger.info(
+        'Unknown link source type: %s for link: %s',
+        link.source_type,
+        link.url
+    )
     return {}
