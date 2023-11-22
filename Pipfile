@@ -28,6 +28,8 @@ django-friendship = "*"
 django-jsonform = "*"
 spotipy = "*"
 google-api-python-client = "*"
+django-allauth = "*"
+dj-rest-auth = "*"
 
 [dev-packages]
 factory-boy = "*"
