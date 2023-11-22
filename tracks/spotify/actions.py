@@ -64,10 +64,12 @@ def create_records_from_metadata(link_id: int, metadata: dict) -> Track:
         }
     )
 
-    track = Track.objects.create(
+    track, _ = Track.objects.get_or_create(
         name=metadata['name'],
         author=author,
-        meta=metadata,
+        defaults={
+            'meta': metadata,
+        }
     )
 
     try:

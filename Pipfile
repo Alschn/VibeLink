@@ -27,6 +27,7 @@ flower = "*"
 django-friendship = "*"
 django-jsonform = "*"
 spotipy = "*"
+google-api-python-client = "*"
 
 [dev-packages]
 factory-boy = "*"

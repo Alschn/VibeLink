@@ -37,7 +37,10 @@ class LinksViewSetTests(TestCase):
             LinkSerializer(expected_queryset, many=True).data,
         )
 
-    def test_create_link_youtube(self):
+    @patch('tracks.youtube.actions.gather_youtube_metadata')
+    def test_create_link_youtube(self, mock_fetch_youtube):
+        mock_fetch_youtube.return_value = {}
+
         link_request = LinkRequestFactory(user=self.user)
         song_url = 'https://www.youtube.com/watch?v=bwQDEvTcvUg&ab_channel=Narkopop'
 
@@ -58,6 +61,8 @@ class LinksViewSetTests(TestCase):
         self.assertEqual(Link.SourceType(source_type), Link.SourceType.YOUTUBE)
 
         link_id = response_json['id']
+        mock_fetch_youtube.assert_called_once_with(link_id, song_url)
+
         link = Link.objects.get(id=link_id)
 
         link_request.refresh_from_db()

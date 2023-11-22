@@ -311,3 +311,8 @@ AUTH_USER_MODEL = 'accounts.User'
 
 SPOTIPY_CLIENT_ID = env('SPOTIPY_CLIENT_ID', default=None)
 SPOTIPY_CLIENT_SECRET = env('SPOTIPY_CLIENT_SECRET', default=None)
+
+# Google API Python Client settings
+# https://googleapis.github.io/google-api-python-client/docs/dyn/
+
+GOOGLE_CLOUD_API_KEY = env('GOOGLE_CLOUD_API_KEY', default=None)
