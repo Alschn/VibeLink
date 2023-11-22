@@ -39,6 +39,10 @@ REDIS_PORT=6379
 # https://developer.spotify.com/dashboard
 SPOTIPY_CLIENT_ID=...
 SPOTIFT_CLIENT_SECRET=...
+
+# Google API key
+# https://console.cloud.google.com/apis/credentials
+GOOGLE_CLOUD_API_KEY=...
 ```
 
 `env/postgres.env`
