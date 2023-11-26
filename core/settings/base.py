@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from environ import Env
@@ -48,7 +49,14 @@ INSTALLED_APPS = [
     'django_filters',
 
     'rest_framework',
+
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'dj_rest_auth',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'dj_rest_auth.registration',
 
     'django_celery_results',
     'django_celery_beat',
@@ -65,6 +73,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -238,6 +247,58 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
+# Authentication backends
+# https://django-allauth.readthedocs.io/en/latest/configuration.html
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# JWT settings
+# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'UPDATE_LAST_LOGIN': False,
+
+    'ISSUER': env('SIMPLE_JWT_ISSUER', default=None),
+}
+
+# django-allauth settings
+# https://docs.allauth.org/en/latest/account/configuration.html
+
+ACCOUNT_ADAPTER = 'accounts.adapters.AccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'accounts.adapters.SocialAccountAdapter'
+
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_EMAIL_CONFIRMATION_COOLDOWN = 3 * 60
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+ACCOUNT_EMAIL_CONFIRMATION_HMAC = True
+
+ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
+ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 5 * 60
+
+OLD_PASSWORD_FIELD_ENABLED = True
+
+# dj-rest-auth settings
+# https://dj-rest-auth.readthedocs.io/en/latest/configuration.html#configuration
+
+REST_AUTH = {
+    'TOKEN_MODEL': None,
+    'SESSION_LOGIN': False,
+
+    'PASSWORD_RESET_SERIALIZER': 'accounts.serializers.PasswordResetSerializer',
+
+    'USE_JWT': True,
+    'JWT_AUTH_RETURN_EXPIRATION': False,
+    'JWT_AUTH_COOKIE': None,
+    'JWT_AUTH_REFRESH_COOKIE': None,
+    'JWT_AUTH_HTTPONLY': False,
+}
+
 # drf-spectacular settings
 # https://drf-spectacular.readthedocs.io/en/latest/settings.html
 
@@ -299,7 +360,20 @@ SITE_ID = 1
 # Emails config
 # https://docs.djangoproject.com/en/4.2/topics/email/#smtp-backend
 
-# todo: setup email async backend, smtp config
+USE_SMTP = env.bool('USE_SMTP', default=False)
+
+if USE_SMTP:
+    # todo: setup email async backend
+    EMAIL_BACKEND = 'core.shared.email_backends.CeleryEmailBackend'
+
+    EMAIL_HOST = env('EMAIL_HOST')
+    EMAIL_PORT = env('EMAIL_PORT', cast=int)
+    EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+    EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS')
+    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Custom user
 # https://docs.djangoproject.com/en/4.2/topics/auth/customizing/
