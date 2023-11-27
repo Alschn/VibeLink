@@ -359,6 +359,8 @@ CACHES = {
 
 SITE_ID = 1
 
+FRONTEND_SITE_NAME = env('FRONTEND_SITE_NAME', default='VibeLink')
+
 # Emails config
 # https://docs.djangoproject.com/en/4.2/topics/email/#smtp-backend
 

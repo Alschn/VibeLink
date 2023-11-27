@@ -7,7 +7,10 @@ from allauth.account.models import EmailConfirmation, EmailConfirmationHMAC
 from allauth.account.utils import user_pk_to_url_str, user_username
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.contrib.auth import get_user_model
-from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import EmailMessage, EmailMultiAlternatives
+from django.utils.encoding import force_str
+
+from core.shared.frontend import get_frontend_site, build_frontend_url
 
 EmailConfirmationType = EmailConfirmation | EmailConfirmationHMAC
 
@@ -48,8 +51,7 @@ class AccountAdapter(DefaultAccountAdapter):
         uid = user_pk_to_url_str(user)
         url = self.get_password_reset_url(request, uid, temp_key)
 
-        # todo: frontend url
-        frontend_site = get_current_site(request)
+        frontend_site = get_frontend_site()
         context = {
             'current_site': frontend_site,
             'user': user,
@@ -70,13 +72,12 @@ class AccountAdapter(DefaultAccountAdapter):
         emailconfirmation: EmailConfirmationType,
         signup: bool
     ) -> None:
-        # todo: frontend url
-        current_site = get_current_site(request)
+        frontend_site = get_frontend_site()
         activate_url = self.get_email_confirmation_url(request, emailconfirmation)
         ctx = {
             "user": emailconfirmation.email_address.user,
             "activate_url": activate_url,
-            "current_site": current_site,
+            "current_site": frontend_site,
             "key": emailconfirmation.key,
         }
         if signup:
@@ -91,8 +92,8 @@ class AccountAdapter(DefaultAccountAdapter):
     ) -> str:
         """Constructs the password reset (frontend) url."""
 
-        # todo: build frontend url
-        return self.password_reset_url_path.format(uid=uid, token=token)
+        frontend_path = self.password_reset_url_path.format(uid=uid, token=token)
+        return build_frontend_url(frontend_path)
 
     def get_email_confirmation_url(
         self,
@@ -101,8 +102,9 @@ class AccountAdapter(DefaultAccountAdapter):
     ) -> str:
         """Constructs the email confirmation (activation) (frontend) url."""
 
-        # todo: build frontend url
-        return self.email_confirmation_url_path.format(key=emailconfirmation.key)
+        key = emailconfirmation.key
+        frontend_path = self.email_confirmation_url_path.format(key=key)
+        return build_frontend_url(frontend_path)
 
     def get_email_confirmation_redirect_url(self, request: Any) -> None:
         """
@@ -116,6 +118,22 @@ class AccountAdapter(DefaultAccountAdapter):
         after the email verification has been sent.
         """
         return None
+
+    def format_email_subject(self, subject: str) -> str:
+        prefix = allauth_settings.EMAIL_SUBJECT_PREFIX
+        if prefix is None:
+            site = get_frontend_site()
+            prefix = "[{name}] ".format(name=site.name)
+        return prefix + force_str(subject)
+
+    def render_mail(
+        self,
+        template_prefix: str,
+        email: str,
+        context: dict,
+        headers: dict = None
+    ) -> EmailMultiAlternatives | EmailMessage:
+        return super().render_mail(template_prefix, email, context, headers)
 
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):

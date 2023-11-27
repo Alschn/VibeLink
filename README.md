@@ -25,6 +25,7 @@ DEBUG=True
 SECRET_KEY=randomsecretkey
 ALLOWED_HOSTS=backend,localhost,127.0.0.1,host.docker.internal,*
 SIMPLE_JWT_ISSUER=vibelink
+FRONTEND_SITE_NAME=VibeLink
 
 DB_ENGINE=django.db.backends.postgresql
 DB_NAME=postgres
