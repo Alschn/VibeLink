@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     'corsheaders',
     'django_extensions',
@@ -64,6 +65,7 @@ INSTALLED_APPS = [
     'friendship',
 
     # apps
+    'core',
     'accounts',
     'links',
     'tracks',
