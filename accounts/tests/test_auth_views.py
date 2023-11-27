@@ -26,16 +26,16 @@ patch_adapter_send_password_reset_mail = patch('accounts.adapters.AccountAdapter
     }
 )
 class AuthAPIViewsTests(APITestCase):
-    logout_url = reverse_lazy('logout')
-    token_url = reverse_lazy('token')
-    token_verify_url = reverse_lazy('token_verify')
-    token_refresh_url = reverse_lazy('token_refresh')
-    password_change_url = reverse_lazy('password_change')
-    password_reset_url = reverse_lazy('password_reset')
-    password_reset_confirm_url = reverse_lazy('password_reset_confirm')
-    register_url = reverse_lazy('register')
-    register_verify_url = reverse_lazy('register_verify_email')
-    register_confirm_url = reverse_lazy('register_resend_email')
+    logout_url = reverse_lazy('accounts:logout')
+    token_url = reverse_lazy('accounts:token')
+    token_verify_url = reverse_lazy('accounts:token_verify')
+    token_refresh_url = reverse_lazy('accounts:token_refresh')
+    password_change_url = reverse_lazy('accounts:password_change')
+    password_reset_url = reverse_lazy('accounts:password_reset')
+    password_reset_confirm_url = reverse_lazy('accounts:password_reset_confirm')
+    register_url = reverse_lazy('accounts:register')
+    register_verify_url = reverse_lazy('accounts:register_verify_email')
+    register_confirm_url = reverse_lazy('accounts:register_resend_email')
 
     @classmethod
     def setUpTestData(cls):
