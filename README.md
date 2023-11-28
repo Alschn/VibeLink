@@ -24,6 +24,8 @@ DJANGO_SETTINGS_MODULE=core.settings.base
 DEBUG=True
 SECRET_KEY=randomsecretkey
 ALLOWED_HOSTS=backend,localhost,127.0.0.1,host.docker.internal,*
+SIMPLE_JWT_ISSUER=vibelink
+FRONTEND_SITE_NAME=VibeLink
 
 DB_ENGINE=django.db.backends.postgresql
 DB_NAME=postgres
@@ -34,6 +36,13 @@ DB_PORT=5432
 
 REDIS_HOST=redis_db
 REDIS_PORT=6379
+
+USE_SMTP=True
+EMAIL_HOST=...
+EMAIL_PORT=...
+EMAIL_HOST_USER=...
+EMAIL_HOST_PASSWORD=...
+EMAIL_USE_TLS=True
 
 # Spotify API keys
 # https://developer.spotify.com/dashboard
