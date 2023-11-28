@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.test import TestCase, override_settings
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
@@ -155,3 +157,23 @@ class LinksViewSetTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('link_request', response.json())
+
+    def test_create_link_http(self):
+        link_request = LinkRequestFactory(user=self.user)
+        url = 'http://localhost:8000'
+
+        validator = URLValidator(schemes=Link.ALLOWED_SCHEMES)
+        with self.assertRaises(ValidationError):
+            validator(url)
+
+        self.client.force_login(self.user)
+        response = self.client.post(
+            self.links_list_url,
+            data={
+                'link_request': link_request.id,
+                'title': 'HTTP link test',
+                'url': url
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('url', response.json())

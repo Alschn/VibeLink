@@ -2,8 +2,8 @@
 
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
 import django.utils.timezone
+import django.core.validators
 
 
 class Migration(migrations.Migration):
@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=127)),
                 ('description', models.TextField(blank=True, default='', max_length=1000)),
-                ('url', models.URLField()),
+                ('url', models.URLField(validators=[django.core.validators.URLValidator(schemes=('https',))])),
                 ('source_type', models.CharField(choices=[('YT', 'YouTube'), ('SP', 'Spotify'), ('UN', 'Unknown')], max_length=2)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
