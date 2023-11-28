@@ -1,8 +1,11 @@
+from django.core import validators
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
 class Link(models.Model):
+    ALLOWED_SCHEMES = ('https',)
+
     class SourceType(models.TextChoices):
         YOUTUBE = 'YT', _('YouTube')
         SPOTIFY = 'SP', _('Spotify')
@@ -10,7 +13,9 @@ class Link(models.Model):
 
     title = models.CharField(max_length=127)
     description = models.TextField(max_length=1000, blank=True, default='')
-    url = models.URLField()
+    url = models.URLField(
+        validators=[validators.URLValidator(schemes=ALLOWED_SCHEMES)],
+    )
     source_type = models.CharField(choices=SourceType.choices, max_length=2)
     user = models.ForeignKey(
         'accounts.User',

@@ -1,6 +1,7 @@
 from urllib.parse import urlparse
 
 from django.contrib.auth import get_user_model
+from django.core import validators
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
@@ -52,6 +53,7 @@ class LinkCreateSerializer(serializers.ModelSerializer):
             'updated_at',
         )
         extra_kwargs = {
+            'url': {'validators': [validators.URLValidator(schemes=Link.ALLOWED_SCHEMES)]},
             'source_type': {'read_only': True, 'required': False},
             'user': {'read_only': True, 'required': False},
             'track': {'read_only': True, 'required': False},
@@ -90,6 +92,9 @@ class LinkCreateResultSerializer(LinkCreateSerializer):
     # it's only purpose is for the documentation generation
     # do not use elsewhere
     task_id = serializers.CharField(read_only=True)
+
+    class Meta(LinkCreateSerializer.Meta):
+        fields = LinkCreateSerializer.Meta.fields + ('task_id',)
 
 
 def get_source_type_from_url(url: str) -> Link.SourceType:
