@@ -19,7 +19,7 @@ from environ import Env
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 env = Env()
-env.read_env(BASE_DIR / 'env/backend.env')
+env.read_env()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -59,8 +59,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'dj_rest_auth.registration',
 
-    'django_celery_results',
-    'django_celery_beat',
+    'django_q',
 
     'friendship',
 
@@ -69,6 +68,7 @@ INSTALLED_APPS = [
     'accounts',
     'links',
     'tracks',
+    # 'emails',
 ]
 
 MIDDLEWARE = [
@@ -250,7 +250,7 @@ REST_FRAMEWORK = {
 }
 
 # Authentication backends
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
+# https://docs.allauth.org/en/latest/account/configuration.html
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -307,11 +307,12 @@ REST_AUTH = {
 SPECTACULAR_SETTINGS = {
     'TITLE': 'VibeLink API',
     'DESCRIPTION': 'VibeLink REST API provided by Alschn',
-    'VERSION': '1.0.0',
+    'VERSION': '0.1.0',
     'CONTACT': {
         'name': 'Alschn',
         'url': 'https://github.com/Alschn/',
     },
+    'SCHEMA_PATH_PREFIX': '/api/',
     'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
 }
 
@@ -326,31 +327,56 @@ CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST', default=[])
 
 CORS_ORIGIN_REGEX_WHITELIST = env.list('CORS_ORIGIN_REGEX_WHITELIST', default=[])
 
-# Redis settings
+# Django Q configuration
+# https://django-q2.readthedocs.io/en/master/configure.html
+
+REDIS_HOST = env('REDIS_HOST', default='redis_db')
+REDIS_PORT = env.int('REDIS_PORT', default=6379)
+
+# default values taken from the documentation
+Q_CLUSTER_NAME = env('Q_CLUSTER_NAME', default='vibelink')
+Q_CLUSTER_WORKERS = env.int('Q_CLUSTER_WORKERS', default=4)
+Q_CLUSTER_DAEMONIZE_WORKERS = env.bool('Q_CLUSTER_DAEMONIZE_WORKERS', default=False)
+Q_CLUSTER_RECYCLE = env.int('Q_CLUSTER_RECYCLE', default=500)
+Q_CLUSTER_TIMEOUT = env.int('Q_CLUSTER_TIMEOUT', default=60)
+Q_CLUSTER_COMPRESS = env.bool('Q_CLUSTER_COMPRESS', default=True)
+Q_CLUSTER_MAX_ATTEMPTS = env.int('Q_CLUSTER_MAX_ATTEMPTS', default=0)
+Q_CLUSTER_RETRY = env.int('Q_CLUSTER_RETRY', default=60)
+Q_CLUSTER_SAVE_LIMIT = env.int('Q_CLUSTER_SAVE_LIMIT', default=250)
+Q_CLUSTER_QUEUE_LIMIT = env.int('Q_CLUSTER_QUEUE_LIMIT', default=500)
+Q_CLUSTER_CPU_AFFINITY = env.int('Q_CLUSTER_CPU_AFFINITY', default=1)
+Q_CLUSTER_SYNC = False
+Q_CLUSTER_CATCH_UP = True
+
+Q_CLUSTER = {
+    'name': Q_CLUSTER_NAME,
+    'workers': Q_CLUSTER_WORKERS,
+    'daemonize_workers': Q_CLUSTER_DAEMONIZE_WORKERS,
+    'recycle': Q_CLUSTER_RECYCLE,
+    'timeout': Q_CLUSTER_TIMEOUT,
+    'compress': Q_CLUSTER_COMPRESS,
+    'max_attempts': Q_CLUSTER_MAX_ATTEMPTS,
+    'retry': Q_CLUSTER_RETRY,
+    'save_limit': Q_CLUSTER_SAVE_LIMIT,
+    'queue_limit': Q_CLUSTER_QUEUE_LIMIT,
+    'cpu_affinity': Q_CLUSTER_CPU_AFFINITY,
+    'sync': Q_CLUSTER_SYNC,
+    'catch_up': Q_CLUSTER_CATCH_UP,
+    'label': 'Django Q2',
+    'redis': {
+        'host': REDIS_HOST,
+        'port': REDIS_PORT,
+        'db': 0,
+    }
+}
 
 # Django cache settings
 # https://docs.djangoproject.com/en/4.2/topics/cache/
 
-REDIS_HOST = env('REDIS_HOST', default=None)
-
-REDIS_PORT = env('REDIS_PORT', cast=int, default=None)
-
-REDIS_URL = env('REDIS_URL', default=None)
-
-CELERY_TIMEZONE = TIME_ZONE
-
-CELERY_BROKER_URL = REDIS_URL or f'redis://{REDIS_HOST}:{REDIS_PORT}'
-
-CELERY_RESULT_BACKEND = 'django-db'
-
-CELERY_CACHE_BACKEND = 'default'
-
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
-
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': CELERY_BROKER_URL,
+        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}',
     },
 }
 

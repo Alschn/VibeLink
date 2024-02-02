@@ -14,19 +14,19 @@ from tracks.youtube.serializers import YoutubeVideoListSerializer
 logger = logging.getLogger(__name__)
 
 
-def gather_youtube_metadata(link_id: int, url: str) -> dict:
+def gather_youtube_metadata(link: Link) -> dict:
     id_regex = r'[a-zA-Z0-9_-]+'
     pattern_full = f'watch\?v=({id_regex})'
     pattern_short = f'youtu\.be\/({id_regex})'
 
-    if match_full := re.search(pattern_full, url):
+    if match_full := re.search(pattern_full, link.url):
         video_id = match_full.group(1)
 
-    elif match_short := re.search(pattern_short, url):
+    elif match_short := re.search(pattern_short, link.url):
         video_id = match_short.group(1)
 
     else:
-        logger.exception('Failed to parse YouTube video URL: %s', url)
+        logger.exception('Failed to parse YouTube video URL: %s', link.url)
         return {}
 
     try:
@@ -43,7 +43,7 @@ def gather_youtube_metadata(link_id: int, url: str) -> dict:
         logger.exception(e, exc_info=True)
         return {}
 
-    create_records_from_metadata(link_id, metadata)
+    create_records_from_metadata(link, metadata)
 
     return metadata
 
@@ -55,7 +55,7 @@ def transform_youtube_video_data(results: dict) -> dict:
 
 
 @transaction.atomic
-def create_records_from_metadata(link_id: int, metadata: dict) -> dict:
+def create_records_from_metadata(link: Link, metadata: dict) -> dict:
     video = metadata['items'][0]
     snippet = video['snippet']
 
@@ -76,15 +76,6 @@ def create_records_from_metadata(link_id: int, metadata: dict) -> dict:
             'meta': video,
         }
     )
-
-    try:
-        link = Link.objects.get(id=link_id)
-    except Link.DoesNotExist:
-        logger.exception(
-            'Link with id %s does not exist. Could not attach track to Link object.',
-            link_id
-        )
-        return track
 
     link.track = track
     link.save(update_fields=['track'])

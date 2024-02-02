@@ -13,15 +13,15 @@ from tracks.spotify.serializers import SpotifyTrackSerializer
 logger = logging.getLogger(__name__)
 
 
-def gather_spotify_metadata(link_id: int, url: str) -> dict:
+def gather_spotify_metadata(link: Link) -> dict:
     spotify_client = get_spotify_client()
 
     pattern = 'track/([a-zA-Z0-9]+)'
-    match = re.search(pattern, url)
+    match = re.search(pattern, link.url)
 
     if not match:
         # todo: raise custom exception, catch and log it inside the task
-        logger.exception('Failed to parse Spotify track URL: %s', url)
+        logger.exception('Failed to parse Spotify track URL: %s', link.url)
         return {}
 
     track_id = match.group(1)
@@ -41,7 +41,7 @@ def gather_spotify_metadata(link_id: int, url: str) -> dict:
         logger.exception(e, exc_info=True)
         return {}
 
-    create_records_from_metadata(link_id, metadata)
+    create_records_from_metadata(link, metadata)
 
     return metadata
 
@@ -53,7 +53,7 @@ def transform_spotify_track_data(track: dict) -> dict:
 
 
 @transaction.atomic
-def create_records_from_metadata(link_id: int, metadata: dict) -> Track:
+def create_records_from_metadata(link: Link, metadata: dict) -> Track:
     authors = metadata['artists']
     author = authors[0]
 
@@ -71,15 +71,6 @@ def create_records_from_metadata(link_id: int, metadata: dict) -> Track:
             'meta': metadata,
         }
     )
-
-    try:
-        link = Link.objects.get(id=link_id)
-    except Link.DoesNotExist:
-        logger.exception(
-            'Link with id %s does not exist. Could not attach track to Link object.',
-            link_id
-        )
-        return track
 
     link.track = track
     link.save(update_fields=['track'])

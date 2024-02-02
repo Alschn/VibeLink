@@ -1,8 +1,8 @@
 from unittest.mock import patch, MagicMock
 
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.utils import timezone
-from django_celery_beat.models import ClockedSchedule, PeriodicTask
+from django_q.models import Schedule
 from freezegun import freeze_time
 
 from accounts.models import User
@@ -12,19 +12,18 @@ from links.models import LinkRequest
 from links.queue.schedules import schedule_generate_link_requests
 from links.queue.tasks import generate_link_requests
 
-
-@override_settings(
-    CELERY_TASK_ALWAYS_EAGER=True,
-    CELERY_STORE_EAGER_RESULTS=True,
-    CELERY_BROKER_URL='memory://',
+patch_send_link_requests_email_notifications = patch(
+    'links.queue.tasks.send_link_requests_email_notifications'
 )
+
+
 class LinkRequestsTasksTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
         cls.user = UserFactory()
 
-    @patch('links.emails.send_link_requests_email_notifications')
+    @patch_send_link_requests_email_notifications
     def test_generate_link_requests_task(self, mock_emails: MagicMock):
         UserFactory.create_batch(2)
         users = User.objects.all()
@@ -47,13 +46,10 @@ class LinkRequestsTasksTests(TestCase):
         task_name = 'generate-link-requests-' + random_time.strftime('%Y-%m-%d-%H-%M-%S')
 
         self.assertTrue(
-            ClockedSchedule.objects.filter(clocked_time=random_time).exists()
-        )
-        self.assertTrue(
-            PeriodicTask.objects.filter(
+            Schedule.objects.filter(
                 name=task_name,
-                task=get_function_module_path(generate_link_requests),
-                one_off=True,
-                start_time=random_time,
+                func=get_function_module_path(generate_link_requests),
+                schedule_type=Schedule.ONCE,
+                next_run=random_time
             ).exists()
         )
