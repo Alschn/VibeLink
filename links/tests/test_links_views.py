@@ -10,7 +10,7 @@ from core.shared.factories import UserFactory, LinkRequestFactory, LinkFactory
 from links.models import Link
 from links.serializers.link import LinkSerializer
 
-patch_create_async_task = patch('links.views.links.create_async_task')
+patch_create_async_task = patch('links.views.links.create_async_task', return_value=None)
 
 
 class LinksViewSetTests(TestCase):
