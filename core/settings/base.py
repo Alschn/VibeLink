@@ -68,7 +68,7 @@ INSTALLED_APPS = [
     'accounts',
     'links',
     'tracks',
-    'emails',
+    # 'emails',
 ]
 
 MIDDLEWARE = [
