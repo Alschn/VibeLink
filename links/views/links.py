@@ -1,6 +1,5 @@
 from typing import Any
 
-from celery.result import AsyncResult
 from django.db import transaction
 from django.db.models import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,6 +10,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from core.shared.pagination import page_number_pagination_factory
+from core.shared.tasks import create_async_task
 from links.filters.link import LinksFilterSet
 from links.models import Link
 from links.queue.tasks import gather_metadata_for_link
@@ -48,8 +48,11 @@ class LinksViewSet(
     @transaction.atomic
     def perform_create(self, serializer: LinkCreateSerializer) -> tuple[Link, str]:
         instance: Link = serializer.save()
-        result: AsyncResult = gather_metadata_for_link.delay(link_id=instance.id)
-        return instance, result.id
+        async_result = create_async_task(
+            gather_metadata_for_link,
+            link=instance
+        )
+        return instance, async_result
 
     @extend_schema(
         responses={

@@ -1,16 +1,28 @@
 import random
 
-from celery import shared_task
 from django.utils import timezone
+from django_q.models import Schedule
+from django_q.tasks import schedule
 
-from core.shared.tasks import get_function_module_path
+from core.shared.tasks import (
+    get_function_module_path,
+    get_daily_schedule_next_run_time
+)
 from links.queue.tasks import generate_link_requests
 
 
-@shared_task
-def schedule_generate_link_requests() -> str:
-    from django_celery_beat.models import PeriodicTask, ClockedSchedule
+def schedule_daily_generate_link_requests(*args, **kwargs) -> Schedule:
+    return schedule(
+        get_function_module_path(schedule_generate_link_requests),
+        *args,
+        schedule_type=Schedule.DAILY,
+        repeats=-1,
+        next_run=get_daily_schedule_next_run_time(hour=0, minute=0),
+        **kwargs,
+    )
 
+
+def schedule_generate_link_requests() -> Schedule:
     now = timezone.now()
     end_of_today = now.replace(hour=23, minute=59, second=59)
 
@@ -21,16 +33,9 @@ def schedule_generate_link_requests() -> str:
 
     task_name = 'generate-link-requests-' + random_time.strftime('%Y-%m-%d-%H-%M-%S')
 
-    # create a new schedule required by periodic task
-    clocked, _ = ClockedSchedule.objects.get_or_create(clocked_time=random_time)
-
-    # schedule one-off task at random time
-    PeriodicTask.objects.create(
+    return schedule(
+        get_function_module_path(generate_link_requests),
         name=task_name,
-        task=get_function_module_path(generate_link_requests),
-        one_off=True,
-        clocked=clocked,
-        start_time=random_time,
+        schedule_type=Schedule.ONCE,
+        next_run=random_time
     )
-
-    return task_name

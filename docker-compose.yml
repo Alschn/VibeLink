@@ -34,49 +34,17 @@ services:
       - "8000:8000"
     command: python manage.py runserver 0.0.0.0:8000
 
-  celery_worker:
-    container_name: vibe-link-celery-worker
+  django_q:
+    container_name: vibe-link-django_q
     build: .
     env_file:
       - env/backend.env
-    stdin_open: true
-    tty: true
+    volumes:
+      - .:/app/
     depends_on:
       - postgres_db
       - redis_db
-    volumes:
-      - .:/app/
-    command: celery -A core.celery.app worker -l INFO
-
-  celery_beat:
-    container_name: vibe-link-celery-beat
-    build: .
-    env_file:
-      - env/backend.env
-    stdin_open: true
-    tty: true
-    depends_on:
-      - postgres_db
-      - redis_db
-    volumes:
-      - .:/app/
-    command: celery -A core.celery.app beat -l INFO
-
-  flower:
-    container_name: vibe-link-flower
-    build: .
-    env_file:
-      - env/backend.env
-    stdin_open: true
-    tty: true
-    depends_on:
-      - postgres_db
-      - redis_db
-    volumes:
-      - .:/app/
-    ports:
-      - "5555:5555"
-    command: celery -A core.celery.app flower -l INFO
+    command: python manage.py qcluster
 
 volumes:
   postgres-data:

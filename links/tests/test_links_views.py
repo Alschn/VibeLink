@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
@@ -10,11 +10,9 @@ from core.shared.factories import UserFactory, LinkRequestFactory, LinkFactory
 from links.models import Link
 from links.serializers.link import LinkSerializer
 
+patch_create_async_task = patch('links.views.links.create_async_task')
 
-@override_settings(
-    CELERY_TASK_ALWAYS_EAGER=True,
-    CELERY_BROKER_URL='memory://'
-)
+
 class LinksViewSetTests(TestCase):
     links_list_url = reverse_lazy('links:links-list')
 
@@ -39,10 +37,8 @@ class LinksViewSetTests(TestCase):
             LinkSerializer(expected_queryset, many=True).data,
         )
 
-    @patch('tracks.youtube.actions.gather_youtube_metadata')
-    def test_create_link_youtube(self, mock_fetch_youtube):
-        mock_fetch_youtube.return_value = {}
-
+    @patch_create_async_task
+    def test_create_link_youtube(self, mock_async_task):
         link_request = LinkRequestFactory(user=self.user)
         song_url = 'https://www.youtube.com/watch?v=bwQDEvTcvUg&ab_channel=Narkopop'
 
@@ -59,22 +55,21 @@ class LinksViewSetTests(TestCase):
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+        mock_async_task.assert_called_once()
+
         source_type = response_json['source_type']
         self.assertEqual(Link.SourceType(source_type), Link.SourceType.YOUTUBE)
 
         link_id = response_json['id']
-        mock_fetch_youtube.assert_called_once_with(link_id, song_url)
-
         link = Link.objects.get(id=link_id)
 
         link_request.refresh_from_db()
         self.assertEqual(link_request.link, link)
         self.assertIsNotNone(link_request.fulfilled_at)
+        self.assertIn('task_id', response_json)
 
-    @patch('tracks.spotify.actions.gather_spotify_metadata')
-    def test_create_link_spotify(self, mock_fetch_spotify):
-        mock_fetch_spotify.return_value = {}
-
+    @patch_create_async_task
+    def test_create_link_spotify(self, mock_async_task):
         link_request = LinkRequestFactory(user=self.user)
         song_url = 'https://open.spotify.com/track/5CTNmaXOY1nSnIUsxCpiyU?si=b395d83e839544b1'
 
@@ -90,13 +85,17 @@ class LinksViewSetTests(TestCase):
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+        mock_async_task.assert_called_once()
+
         link_id = response_json['id']
-        mock_fetch_spotify.assert_called_once_with(link_id, song_url)
+        self.assertTrue(Link.objects.filter(id=link_id).exists())
 
         source_type = response_json['source_type']
         self.assertEqual(Link.SourceType(source_type), Link.SourceType.SPOTIFY)
+        self.assertIn('task_id', response_json)
 
-    def test_create_link_other_source(self):
+    @patch_create_async_task
+    def test_create_link_other_source(self, mock_async_task):
         link_request = LinkRequestFactory(user=self.user)
         song_url = 'https://soundcloud.com/hahaahahahahah/controlla'
 
@@ -112,8 +111,14 @@ class LinksViewSetTests(TestCase):
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+        mock_async_task.assert_called_once()
+
+        link_id = response_json['id']
+        self.assertTrue(Link.objects.filter(id=link_id).exists())
+
         source_type = response_json['source_type']
         self.assertEqual(Link.SourceType(source_type), Link.SourceType.UNKNOWN)
+        self.assertIn('task_id', response_json)
 
     def test_create_link_invalid_url(self):
         link_request = LinkRequestFactory(user=self.user)
