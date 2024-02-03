@@ -68,7 +68,7 @@ INSTALLED_APPS = [
     'accounts',
     'links',
     'tracks',
-    # 'emails',
+    'emails',
 ]
 
 MIDDLEWARE = [
@@ -276,12 +276,14 @@ SOCIALACCOUNT_ADAPTER = 'accounts.adapters.SocialAccountAdapter'
 
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-ACCOUNT_EMAIL_CONFIRMATION_COOLDOWN = 3 * 60
-ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+ACCOUNT_EMAIL_CONFIRMATION_COOLDOWN = env.int('ACCOUNT_EMAIL_CONFIRMATION_COOLDOWN', default=1 * 60)
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int('ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS', default=1)
 ACCOUNT_EMAIL_CONFIRMATION_HMAC = True
 
-ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
-ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 5 * 60
+ACCOUNT_MAX_EMAIL_ADDRESSES = None
+
+ACCOUNT_LOGIN_ATTEMPTS_LIMIT = env.int('ACCOUNT_LOGIN_ATTEMPTS_LIMIT', default=5)
+ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = env.int('ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT', default=1 * 60)
 
 OLD_PASSWORD_FIELD_ENABLED = True
 
@@ -393,17 +395,19 @@ FRONTEND_SITE_NAME = env('FRONTEND_SITE_NAME', default='VibeLink')
 USE_SMTP = env.bool('USE_SMTP', default=False)
 
 if USE_SMTP:
-    # todo: setup email async backend
-    EMAIL_BACKEND = 'core.shared.email_backends.CeleryEmailBackend'
+    EMAIL_BACKEND = 'emails.backends.DjangoQBackend'
+    DJANGO_Q_EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
     EMAIL_HOST = env('EMAIL_HOST')
     EMAIL_PORT = env('EMAIL_PORT', cast=int)
     EMAIL_HOST_USER = env('EMAIL_HOST_USER')
     EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
-    EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS')
+    EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=False)
+    EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
     DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 else:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    EMAIL_BACKEND = 'emails.backends.DjangoQBackend'
+    DJANGO_Q_EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Custom user
 # https://docs.djangoproject.com/en/4.2/topics/auth/customizing/

@@ -135,6 +135,14 @@ class AccountAdapter(DefaultAccountAdapter):
     ) -> EmailMultiAlternatives | EmailMessage:
         return super().render_mail(template_prefix, email, context, headers)
 
+    def send_mail(
+        self,
+        template_prefix: str,
+        email: str,
+        context: dict
+    ) -> None:
+        super().send_mail(template_prefix, email, context)
+
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
     pass
