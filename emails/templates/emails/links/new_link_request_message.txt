@@ -1,0 +1,8 @@
+{% extends "emails/base.txt" %}
+{% load i18n %}
+
+{% block content %}{% autoescape off %}{% blocktrans with frontend_url=frontend_url %}Your daily VibeLink is here!
+
+Go to our page and submit your favourite link.
+
+{{ frontend_url }}{% endblocktrans %}{% endautoescape %}{% endblock content %}
