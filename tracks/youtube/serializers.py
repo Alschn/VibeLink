@@ -25,10 +25,13 @@ class YoutubeVideoSnippetSerializer(serializers.Serializer):
     description = serializers.CharField()
     thumbnails = serializers.DictField()
     channelTitle = serializers.CharField()
-    tags = serializers.ListField(child=serializers.CharField(), allow_empty=True)
+    tags = serializers.ListField(
+        child=serializers.CharField(),
+        allow_empty=True, required=False
+    )
     categoryId = serializers.CharField()
-    defaultLanguage = serializers.CharField()
-    defaultAudioLanguage = serializers.CharField()
+    defaultLanguage = serializers.CharField(required=False)
+    defaultAudioLanguage = serializers.CharField(required=False)
 
 
 class YoutubeVideoSerializer(serializers.Serializer):
