@@ -28,10 +28,10 @@ class LinkRequestsTasksTests(TestCase):
         UserFactory.create_batch(2)
         users = User.objects.all()
 
-        ids = generate_link_requests()
+        link_requests = generate_link_requests()
         queryset = LinkRequest.objects.filter(user_id__in=users.values_list('id', flat=True))
 
-        self.assertEqual(len(ids), queryset.count())
+        self.assertEqual(len(link_requests), queryset.count())
         self.assertTrue(mock_emails.called)
 
     @freeze_time('2021-01-01 00:00:00')

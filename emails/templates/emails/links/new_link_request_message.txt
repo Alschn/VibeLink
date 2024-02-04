@@ -1,0 +1,10 @@
+{% extends "emails/base.txt" %}
+{% load i18n %}
+
+{% block content %}{% autoescape off %}{% blocktrans with frontend_url=frontend_url %}It is time to submit your daily link!
+
+Go to the link below and share your favourite music with others.
+{{ frontend_url }}
+
+Next link will be available tomorrow. Stay tuned and keep vibing!
+{% endblocktrans %}{% endautoescape %}{% endblock content %}

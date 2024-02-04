@@ -1,5 +1,7 @@
 import logging
 
+from django.db.models import Q
+
 from accounts.models import User
 from links.emails import send_link_requests_email_notifications
 from links.models import Link, LinkRequest
@@ -11,13 +13,21 @@ logger.setLevel(logging.DEBUG)
 
 
 def generate_link_requests() -> list[int]:
-    users = User.objects.all()
+    users = User.objects.filter(is_active=True)
     link_requests = [LinkRequest.objects.create(user=user) for user in users]
+    link_requests_ids = [link_request.id for link_request in link_requests]
 
-    # todo: email notifications
-    send_link_requests_email_notifications(users)
+    link_requests_qs = LinkRequest.objects.filter(
+        id__in=link_requests_ids,
+    ).select_related('user').filter(
+        # todo: filter user settings (send_daily_link_request_email=True)
+        ~Q(user__email__exact=''),
+        user__email__isnull=False,
+    )
 
-    return [link_request.id for link_request in link_requests]
+    send_link_requests_email_notifications(link_requests_qs)
+
+    return link_requests_ids
 
 
 def gather_metadata_for_link(link: Link) -> dict:
