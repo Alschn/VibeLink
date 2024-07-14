@@ -5,8 +5,8 @@ from django.db.models import Q
 from accounts.models import User
 from links.emails import send_link_requests_email_notifications
 from links.models import Link, LinkRequest
-from tracks.spotify.actions import gather_spotify_metadata
-from tracks.youtube.actions import gather_youtube_metadata
+from tracks.providers.spotify.actions import gather_spotify_metadata
+from tracks.providers.youtube.actions import gather_youtube_metadata
 
 logger = logging.Logger(__name__)
 logger.setLevel(logging.DEBUG)

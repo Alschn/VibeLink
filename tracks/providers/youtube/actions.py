@@ -8,8 +8,8 @@ from rest_framework import serializers
 
 from links.models import Link
 from tracks.models import Author, Track
-from tracks.youtube import get_youtube_client
-from tracks.youtube.serializers import YoutubeVideoListSerializer
+from tracks.providers.youtube.client import get_youtube_client
+from tracks.providers.youtube.serializers import YoutubeVideoListSerializer
 
 logger = logging.getLogger(__name__)
 
