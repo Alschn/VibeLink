@@ -5,10 +5,13 @@ from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 from allauth.account.utils import user_pk_to_url_str
 from dj_rest_auth.serializers import UserDetailsSerializer
 from dj_rest_auth.utils import jwt_encode
+from django.conf import settings
+from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 from rest_framework.test import APITestCase, override_settings
+from rest_framework_simplejwt.state import token_backend
 
 from accounts.models import User
 from core.shared.factories import UserFactory, DEFAULT_USER_FACTORY_PASSWORD
@@ -47,6 +50,7 @@ class AuthAPIViewsTests(APITestCase):
             verified=True,
         )
 
+    @freeze_time('2020-01-01T00:00:00')
     def test_login(self):
         response = self.client.post(self.token_url, data={
             'username': self.user.username,
@@ -54,12 +58,34 @@ class AuthAPIViewsTests(APITestCase):
         })
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('access', response_json)
-        self.assertIn('refresh', response_json)
-        self.assertIn('user', response_json)
+
+        access = response_json['access']
+        refresh = response_json['refresh']
+        user = response_json['user']
+
         # default dj-rest-auth serializer
         serializer = UserDetailsSerializer(instance=self.user)
-        self.assertEqual(response_json['user'], serializer.data)
+        self.assertEqual(user, serializer.data)
+
+        expected_iat = timezone.now()
+        expected_access_exp = expected_iat + settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME']
+        expected_refresh_exp = expected_iat + settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME']
+
+        decoded_access = token_backend.decode(access)
+        self.assertEqual(decoded_access['token_type'], 'access')
+        self.assertEqual(decoded_access['user_id'], self.user.pk)
+        self.assertEqual(decoded_access['email'], self.user.email)
+        self.assertEqual(decoded_access['username'], self.user.username)
+        self.assertEqual(decoded_access['iat'], int(expected_iat.timestamp()))
+        self.assertEqual(decoded_access['exp'], int(expected_access_exp.timestamp()))
+
+        decoded_refresh = token_backend.decode(refresh)
+        self.assertEqual(decoded_refresh['token_type'], 'refresh')
+        self.assertEqual(decoded_refresh['user_id'], self.user.pk)
+        self.assertEqual(decoded_refresh['email'], self.user.email)
+        self.assertEqual(decoded_refresh['username'], self.user.username)
+        self.assertEqual(decoded_refresh['iat'], int(expected_iat.timestamp()))
+        self.assertEqual(decoded_refresh['exp'], int(expected_refresh_exp.timestamp()))
 
     def test_login_email_not_verified(self):
         user = UserFactory()

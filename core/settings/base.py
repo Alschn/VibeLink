@@ -260,12 +260,16 @@ AUTHENTICATION_BACKENDS = [
 # JWT settings
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
 
+access_token_lifetime_seconds = env.int('SIMPLE_JWT_ACCESS_TOKEN_SECONDS', default=60 * 60)  # 1 hour
+refresh_token_lifetime_seconds = env.int('SIMPLE_JWT_REFRESH_TOKEN_SECONDS', default=60 * 60 * 24)  # 1 day
+
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=access_token_lifetime_seconds),
+    'REFRESH_TOKEN_LIFETIME': timedelta(seconds=refresh_token_lifetime_seconds),
     'UPDATE_LAST_LOGIN': False,
 
-    'ISSUER': env('SIMPLE_JWT_ISSUER', default=None),
+    'AUDIENCE': env.list('SIMPLE_JWT_AUDIENCE', default=None),
+    'ISSUER': env.str('SIMPLE_JWT_ISSUER', default=None),
 }
 
 # django-allauth settings
@@ -301,6 +305,7 @@ REST_AUTH = {
     'JWT_AUTH_COOKIE': None,
     'JWT_AUTH_REFRESH_COOKIE': None,
     'JWT_AUTH_HTTPONLY': False,
+    'JWT_TOKEN_CLAIMS_SERIALIZER': 'accounts.serializers.JWTClaimsSerializer',
 }
 
 # drf-spectacular settings
