@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from tracks.spotify.serializers import SpotifyTrackSerializer
+from tracks.providers.spotify.serializers import SpotifyTrackSerializer
 
 
 class SpotifySerializersTests(TestCase):

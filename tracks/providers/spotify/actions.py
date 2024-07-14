@@ -7,8 +7,8 @@ from rest_framework import serializers
 
 from links.models import Link
 from tracks.models import Track, Author
-from tracks.spotify import get_spotify_client
-from tracks.spotify.serializers import SpotifyTrackSerializer
+from tracks.providers.spotify.client import get_spotify_client
+from tracks.providers.spotify.serializers import SpotifyTrackSerializer
 
 logger = logging.getLogger(__name__)
 
