@@ -23,8 +23,14 @@ DJANGO_SETTINGS_MODULE=core.settings.base
 DEBUG=True
 SECRET_KEY=randomsecretkey
 ALLOWED_HOSTS=backend,localhost,127.0.0.1,host.docker.internal,*
-SIMPLE_JWT_ISSUER=vibelink
 FRONTEND_SITE_NAME=VibeLink
+
+SIMPLE_JWT_AUDIENCE=vibelink
+SIMPLE_JWT_ISSUER=vibelink
+# default: 1 hour
+SIMPLE_JWT_ACCESS_TOKEN_LIFETIME_SECONDS=3600
+# default: 1 day
+SIMPLE_JWT_REFRESH_TOKEN_LIFETIME_SECONDS=86400
 
 DB_ENGINE=django.db.backends.postgresql
 DB_NAME=postgres
