@@ -28,12 +28,12 @@ def gather_spotify_metadata(link: Link) -> dict:
     except spotipy.exceptions.SpotifyException as e:
         # todo: raise custom exception, catch and log it inside the task
         logger.exception(e, exc_info=True)
-        return {}
+        raise e
     except serializers.ValidationError as e:
         # something might have changed in the API response,
         # in that case serializer should be updated as well
         logger.exception(e, exc_info=True)
-        return {}
+        raise e
 
     create_records_from_metadata(link, spotify_track)
 
