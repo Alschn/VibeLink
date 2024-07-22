@@ -1,5 +1,5 @@
+import dataclasses
 import logging
-import re
 from typing import Iterable, Any
 
 import googleapiclient.errors
@@ -9,81 +9,40 @@ from rest_framework import serializers
 from links.models import Link
 from tracks.models import Author, Track
 from tracks.providers.youtube.client import get_youtube_client
+from tracks.providers.youtube.models import YoutubeVideoList, YoutubeVideo, YoutubeParts
 from tracks.providers.youtube.serializers import YoutubeVideoListSerializer
+from tracks.providers.youtube.utils import extract_youtube_video_id_from_url
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_PARTS = [YoutubeParts.VIDEO_ID, YoutubeParts.SNIPPET, YoutubeParts.STATISTICS]
+
 
 def gather_youtube_metadata(link: Link) -> dict:
-    id_regex = r'[a-zA-Z0-9_-]+'
-    pattern_full = f'watch\?v=({id_regex})'
-    pattern_short = f'youtu\.be\/({id_regex})'
+    video_id = extract_youtube_video_id_from_url(link.url)
 
-    if match_full := re.search(pattern_full, link.url):
-        video_id = match_full.group(1)
-
-    elif match_short := re.search(pattern_short, link.url):
-        video_id = match_short.group(1)
-
-    else:
+    if not video_id:
         logger.exception('Failed to parse YouTube video URL: %s', link.url)
         return {}
 
     try:
-        videos_list = get_video_data(video_id, parts=('id', 'snippet', 'statistics',))
+        youtube_video = get_youtube_video(video_id)
     except googleapiclient.errors.Error as e:
         logger.exception(e, exc_info=True)
-        return {}
-
-    try:
-        metadata = transform_youtube_video_data(videos_list)
+        raise e
     except serializers.ValidationError as e:
         # something might have changed in the API response,
         # in that case serializer should be updated as well
         logger.exception(e, exc_info=True)
-        return {}
+        raise e
 
-    create_records_from_metadata(link, metadata)
+    create_records_from_metadata(link, youtube_video)
 
-    return metadata
-
-
-def transform_youtube_video_data(results: dict) -> dict:
-    serializer = YoutubeVideoListSerializer(data=results)
-    serializer.is_valid(raise_exception=True)
-    return serializer.data
-
-
-@transaction.atomic
-def create_records_from_metadata(link: Link, metadata: dict) -> dict:
-    video = metadata['items'][0]
-    snippet = video['snippet']
-
-    author, _ = Author.objects.get_or_create(
-        name=snippet['channelTitle'],
-        defaults={
-            'meta': {
-                'channelId': snippet['channelId'],
-                'channelTitle': snippet['channelTitle'],
-            },
-        }
-    )
-
-    track, _ = Track.objects.get_or_create(
-        name=snippet['title'],
-        author=author,
-        defaults={
-            'meta': video,
-        }
-    )
-
-    link.track = track
-    link.save(update_fields=['track'])
-    return track
+    return dataclasses.asdict(youtube_video)
 
 
 def get_video_data(video_id: str, parts: Iterable[str] = None, **kwargs: Any) -> dict:
-    parts = parts or ['id', 'snippet', 'statistics']
+    parts = parts or DEFAULT_PARTS
 
     youtube_client = get_youtube_client()
     request = youtube_client.videos().list(
@@ -92,3 +51,50 @@ def get_video_data(video_id: str, parts: Iterable[str] = None, **kwargs: Any) ->
         **kwargs
     )
     return request.execute()
+
+
+def transform_youtube_video_data(data: dict) -> YoutubeVideoList:
+    serializer = YoutubeVideoListSerializer(data=data)
+    serializer.is_valid(raise_exception=True)
+    video_list = serializer.save()
+    return video_list
+
+
+def get_youtube_video(video_id: str) -> YoutubeVideo:
+    data = get_video_data(video_id, parts=('id', 'snippet', 'statistics',))
+
+    video_list = transform_youtube_video_data(data)
+    video = video_list.items[0]
+    return video
+
+
+def create_records_from_metadata(link: Link, youtube_video: YoutubeVideo) -> Track:
+    track = track_from_youtube_video(youtube_video)
+    link.track = track
+    link.save(update_fields=['track'])
+    return track
+
+
+@transaction.atomic
+def track_from_youtube_video(youtube_video: YoutubeVideo) -> Track:
+    snippet = youtube_video.snippet
+
+    author, _ = Author.objects.get_or_create(
+        name=snippet.channelTitle,
+        defaults={
+            'meta': {
+                'channelId': snippet.channelId,
+                'channelTitle': snippet.channelTitle,
+            },
+        }
+    )
+
+    track, _ = Track.objects.get_or_create(
+        name=snippet.title,
+        author=author,
+        defaults={
+            'meta': dataclasses.asdict(youtube_video),
+        }
+    )
+
+    return track

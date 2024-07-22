@@ -1,5 +1,6 @@
 from django.test import TestCase
 
+from tracks.providers.spotify.models import SpotifyTrack
 from tracks.providers.spotify.serializers import SpotifyTrackSerializer
 
 
@@ -83,6 +84,7 @@ class SpotifySerializersTests(TestCase):
 
         serializer = SpotifyTrackSerializer(data=sample_spotify_data)
         serializer.is_valid(raise_exception=True)
+        spotify_track = serializer.save()
         serialized_data = serializer.data
         expected_data = {
             'id': '6jmTHeoWvBaSrwWttr8Xvu',
@@ -149,3 +151,4 @@ class SpotifySerializersTests(TestCase):
         }
 
         self.assertEqual(serialized_data, expected_data)
+        self.assertTrue(isinstance(spotify_track, SpotifyTrack))

@@ -3,50 +3,40 @@ Resource:
 
 - https://developers.google.com/youtube/v3/docs/videos/list
 """
+from rest_framework_dataclasses.serializers import DataclassSerializer
 
-from rest_framework import serializers
-
-
-class YoutubePageInfoSerializer(serializers.Serializer):
-    totalResults = serializers.IntegerField()
-    resultsPerPage = serializers.IntegerField()
-
-
-class YoutubeVideoStatisticsSerializer(serializers.Serializer):
-    viewCount = serializers.IntegerField()
-    likeCount = serializers.IntegerField()
-    commentCount = serializers.IntegerField()
+from tracks.providers.youtube.models import (
+    YoutubePageInfo,
+    YoutubeVideoStatistics,
+    YoutubeVideoSnippet,
+    YoutubeVideo,
+    YoutubeVideoList
+)
 
 
-class YoutubeVideoSnippetSerializer(serializers.Serializer):
-    publishedAt = serializers.DateTimeField()
-    channelId = serializers.CharField()
-    title = serializers.CharField()
-    description = serializers.CharField()
-    thumbnails = serializers.DictField()
-    channelTitle = serializers.CharField()
-    tags = serializers.ListField(
-        child=serializers.CharField(),
-        allow_empty=True, required=False
-    )
-    categoryId = serializers.CharField()
-    defaultLanguage = serializers.CharField(required=False)
-    defaultAudioLanguage = serializers.CharField(required=False)
+class YoutubePageInfoSerializer(DataclassSerializer[YoutubePageInfo]):
+    class Meta:
+        dataclass = YoutubePageInfo
 
 
-class YoutubeVideoSerializer(serializers.Serializer):
-    kind = serializers.CharField()
-    etag = serializers.CharField()
-    id = serializers.CharField()
-    snippet = YoutubeVideoSnippetSerializer()
-    statistics = YoutubeVideoStatisticsSerializer()
+class YoutubeVideoStatisticsSerializer(DataclassSerializer[YoutubeVideoStatistics]):
+    class Meta:
+        dataclass = YoutubeVideoStatistics
 
 
-class YoutubeVideoListSerializer(serializers.Serializer):
-    kind = serializers.CharField()
-    etag = serializers.CharField()
-    items = serializers.ListField(
-        child=YoutubeVideoSerializer(),
-        min_length=1
-    )
-    pageInfo = YoutubePageInfoSerializer()
+class YoutubeVideoSnippetSerializer(DataclassSerializer[YoutubeVideoSnippet]):
+    class Meta:
+        dataclass = YoutubeVideoSnippet
+
+
+class YoutubeVideoSerializer(DataclassSerializer[YoutubeVideo]):
+    class Meta:
+        dataclass = YoutubeVideo
+
+
+class YoutubeVideoListSerializer(DataclassSerializer[YoutubeVideoList]):
+    class Meta:
+        dataclass = YoutubeVideoList
+        extra_kwargs = {
+            'items': {'min_length': 1}
+        }
